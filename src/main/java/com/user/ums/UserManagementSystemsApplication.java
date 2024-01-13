@@ -8,7 +8,7 @@ public class UserManagementSystemsApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(UserManagementSystemsApplication.class, args);
-		System.out.println("run Sucess");
+		System.out.println("started");
 	}
 
 }

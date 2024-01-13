@@ -1,14 +1,17 @@
-package com.user.ums.service;
+package com.user.ums.serviceimpl;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import com.user.ums.entity.User;
+import com.user.ums.exception.UserEmailAlreadyPresentException;
+import com.user.ums.exception.UserNotFoundException;
 import com.user.ums.repository.UserRepository;
 import com.user.ums.requestdto.UserRequest;
 import com.user.ums.responsedto.UserResponse;
+import com.user.ums.service.UserService;
 import com.user.ums.util.ResponseStructure;
 
 @Service
@@ -21,10 +24,15 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public ResponseEntity<ResponseStructure<UserResponse>> saveUser(UserRequest userRequest) {
-		User sch = userRepository.save(mapToUser(userRequest));
+		User user;
+		try {
+			user = userRepository.save(mapToUser(userRequest));
+		} catch (RuntimeException e) {
+			throw new UserEmailAlreadyPresentException("user Email is Already Present in dataBase please try with other user ");
+		}
 		responseStructure.setStatus(HttpStatus.CREATED.value());
 		responseStructure.setMessage("User data saved !!!");
-		responseStructure.setData(mapToUserResponse(sch));
+		responseStructure.setData(mapToUserResponse(user));
 		return new ResponseEntity<ResponseStructure<UserResponse>>(responseStructure, HttpStatus.CREATED);
 	}
 
@@ -53,11 +61,12 @@ public class UserServiceImpl implements UserService {
 
 //		way 2
 		User user=mapToUser(userRequest);
-		User user2 = userRepository.findById(userId)
+		User user2;
+		user2= userRepository.findById(userId)
 				.map(u -> {
 			    user.setUserId(userId);
 			    return userRepository.save(user);
-		}).orElseThrow(() -> new RuntimeException());
+		}).orElseThrow(() -> new UserNotFoundException("User is not ther in database...!!!!"));
 		responseStructure.setStatus(HttpStatus.OK.value());
 		responseStructure.setMessage("User data updated !!!");
 		responseStructure.setData(mapToUserResponse(user2));
@@ -68,7 +77,7 @@ public class UserServiceImpl implements UserService {
 	@Override 
 	public ResponseEntity<ResponseStructure<UserResponse>> getUserById(int userId) {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException());
+				.orElseThrow(() -> new UserNotFoundException("User is not ther in database...!!!!"));
 		responseStructure.setStatus(HttpStatus.FOUND.value());
 		responseStructure.setMessage("User data get By Id !!!");
 		responseStructure.setData(mapToUserResponse(user));
@@ -78,7 +87,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public ResponseEntity<ResponseStructure<UserResponse>> deleteUserById(int userId) {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new RuntimeException());
+				.orElseThrow(() -> new UserNotFoundException("User is not ther in database...!!!!"));
 		userRepository.deleteById(userId);
 		responseStructure.setStatus(HttpStatus.OK.value());
 		responseStructure.setMessage("User data deleted !!!");

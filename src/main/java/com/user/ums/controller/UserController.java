@@ -16,13 +16,15 @@ import com.user.ums.responsedto.UserResponse;
 import com.user.ums.service.UserService;
 import com.user.ums.util.ResponseStructure;
 
+import jakarta.validation.Valid;
+
 @RestController
 public class UserController {
 	@Autowired
 	private UserService userService;
 	
 	@PostMapping("/users")
-	public ResponseEntity<ResponseStructure<UserResponse>> saveUser(@RequestBody UserRequest userRequest) {
+	public ResponseEntity<ResponseStructure<UserResponse>> saveUser(@RequestBody @Valid UserRequest userRequest) {
 		return userService.saveUser(userRequest);
 	}
     
